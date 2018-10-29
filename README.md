@@ -9,7 +9,15 @@ You will need to be registered with Bucket & have obtained a Retailer Account.  
 ## Installation
 
 BucketSDK is available through [JitPack](https://jitpack.io). To install
-it, simply add the following line to your gradle file:
+it, simply add the following line to your project-level gradle file:
+
+```gradle
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+```
+
+And, this to your app-level gradle file:
 
 ```gradle
 implementation "com.github.buckettech:BucketSDK-Android:$bucketSDKVersion"
@@ -22,13 +30,13 @@ Using the BucketSDK, you will be able to use either Java or Kotlin to access the
 // Java:
 Bucket.setAppContext(BucketApp.appContext);
 if (!BuildConfig.DEBUG) {
-    Bucket.setEnvironment(Bucket.DeploymentEnvironment.Production);
+    Bucket.setEnvironment(DeploymentEnvironment.Production);
 }
 ```
 ```Kotlin
 // Kotlin
 if (!BuildConfig.DEBUG) {
-    Bucket.environment = Bucket.DeploymentEnvironment.Production
+    Bucket.environment = DeploymentEnvironment.Production
 }
 Bucket.appContext = theAppContext
 ```
@@ -37,34 +45,35 @@ Bucket.appContext = theAppContext
 ````Java
 // Java:
 // Setter:
-Bucket.Credentials.setRetailerId("RetailerId");
-Bucket.Credentials.setRetailerSecret("RetailerSecret");
+Credentials.setRetailerCode("RetailerId");
+Credentials.setTerminalSecret("TerminalSecret");
 
 // Getter:
-String retailerId = Bucket.Credentials.retailerId();
-String retailerSecret = Bucket.Credentials.retailerSecret();
+String retailerCode = Credentials.retailerCode();
+String terminalSecret = Credentials.terminalSecret();
 ````
 
 ```kotlin
 // Kotlin:
 // Setter:
-Bucket.Credentials.setRetailerId("RetailerId")
-Bucket.Credentials.setRetailerSecret("RetailerSecret")
+Credentials.setRetailerCode("RetailerId")
+Credentials.setTerminalSecret("RetailerSecret")
 
 // Getter:
-val retailerId = Bucket.Credentials.retailerId()
-val retailerSecret = Bucket.Credentials.retailerSecret()
+val retailerId = Credentials.retailerCode()
+val retailerSecret = Credentials.terminalSecret()
 ```
 
 ### Setting your currency code:
 SGD (Singapore) & USD (USA) currencies are currently supported.
 ```Java
 // Java:
-Bucket.fetchBillDenominations("USD", new Bucket.Callbacks.BillDenomination() {
+Credentials.setCountryCode("USD");
+Bucket.fetchBillDenominations(new BillDenomination() {
     @Override public void setBillDenoms() {
         
     }
-    @Override public void didError(Bucket.Error error) {
+    @Override public void didError(Error error) {
         
     }
 });
@@ -72,12 +81,13 @@ Bucket.fetchBillDenominations("USD", new Bucket.Callbacks.BillDenomination() {
 
 ```kotlin
 // Kotlin:
-Bucket.fetchBillDenominations("USD", object : Bucket.Callbacks.BillDenomination() {
+Credentials.setCountryCode("USD")
+Bucket.fetchBillDenominations(object : BillDenomination() {
     override fun setBillDenoms() {
     
     }
-    override fun didError(error: Bucket.Error?) {
-                        
+    override fun didError(error: Error?) {
+
     }
 })
 ```
@@ -96,8 +106,8 @@ val bucketAmount = Bucket.bucketAmount(789)
 You will need to use the bucketAmount function to set the transaction amount here.
 ```Java
 // Java:
-Bucket.Transaction tr = new Bucket.Transaction(90, "XCFRTDSFGGOL");
-tr.create(new Bucket.Callbacks.CreateTransaction() {
+Transaction tr = new Transaction("XCFRTDSFGGOL", 0.60, 5.60);
+tr.create(new CreateTransaction() {
     @Override public void transactionCreated() {
         // The transaction was successfully created!
     }
@@ -108,38 +118,13 @@ tr.create(new Bucket.Callbacks.CreateTransaction() {
 ```
 ```Kotlin
 // Kotlin:
-val transaction = Bucket.Transaction(789, "XCFRTDSFGGOL")
-transaction.create(object : Bucket.Callbacks.CreateTransaction() {
+val transaction = Transaction("XCFRTDSFGGOL", 0.60, 5.60)
+transaction.create(object : CreateTransaction() {
     override fun transactionCreated() {
         // Yay the transaction was successfully created.
     }
     override fun didError(error: VolleyError?) {
-    // Oh no - we had an error :(
-    }
-})
-```
-
-### Closing the start-to-end of day
-```Java
-// Java:
-Bucket.close(interval, new Bucket.Callbacks.CloseInterval() {
-    @Override public void closedInterval(String intervalId) {
-        // The interval has been closed!
-    }
-    @Override public void didError(VolleyError volleyError) {
-        // There was an error.
-    }
-});
-```
-
-```kotlin
-// Kotlin:
-Bucket.close(interval, object : Bucket.Callbacks.CloseInterval() {
-    override fun closedInterval(intervalId: String) {
-        // The interval has been closed!
-    }
-    override fun didError(error: Bucket.Error?) {
-        //TODO: Handle the error:
+        // Oh no - we had an error :(
     }
 })
 ```
