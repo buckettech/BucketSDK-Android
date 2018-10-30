@@ -3,12 +3,15 @@ package bucket.sdk
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
+import android.util.Log
+import android.util.Log.e
 import bucket.sdk.callbacks.BillDenomination
 import bucket.sdk.callbacks.CreateTransaction
 import bucket.sdk.callbacks.DeleteTransaction
 import bucket.sdk.callbacks.RegisterTerminal
 import bucket.sdk.models.Error
 import bucket.sdk.models.Transaction
+import bucket.sdk.retrofit.BucketService
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -26,15 +29,16 @@ class ExampleInstrumentedTest {
 
         val appContext = InstrumentationRegistry.getTargetContext()
 
-        assertEquals("bucket.sdk", appContext.packageName)
+        assertEquals("bucket.sdk.test", appContext.packageName)
     }
 
     @Test fun testRegisteringDevice() {
 
         Bucket.appContext = InstrumentationRegistry.getTargetContext()
+        Bucket.environment = DeploymentEnvironment.Staging
         Credentials.setRetailerCode("BCKT-1")
         // Get the client id & client secret for this retailer:
-        Bucket.registerTerminal("us", object : RegisterTerminal {
+        Bucket.registerTerminal("USD", object : RegisterTerminal {
             override fun success(isApproved: Boolean) {
                 assert(true)
             }
@@ -48,14 +52,20 @@ class ExampleInstrumentedTest {
     @Test fun testCreateTransaction() {
 
         Bucket.appContext = InstrumentationRegistry.getTargetContext()
+        Credentials.apply {
+            setRetailerCode("BCKT-1")
+            setTerminalSecret("abc")
+            setCountryCode("USD")
+        }
 
-        val transaction = Transaction(0.54, 7.89, "RandomTransactionId")
+        val transaction = Transaction("RandomTransactionId", 0.54, 7.89)
         transaction.create(object : CreateTransaction {
             override fun transactionCreated() {
                 assert(true)
             }
 
             override fun didError(error: Error) {
+                Log.e("didError", error.message)
                 assertTrue(error.message ?: "", false)
             }
         })
@@ -66,7 +76,7 @@ class ExampleInstrumentedTest {
 
         Bucket.appContext = InstrumentationRegistry.getTargetContext()
 
-        val transaction = Transaction(0.54, 7.89, "RandomTransactionId")
+        val transaction = Transaction("RandomTransactionId", 0.54, 7.89)
         transaction.customerCode = "us.eDZ9LBdvununS"
 
         transaction.delete(object : DeleteTransaction {
@@ -106,7 +116,7 @@ class ExampleInstrumentedTest {
         val theAMountD = theAmountInt/100.0
         val bucketAmount = Bucket.bucketAmount(7.69)
 
-        assertTrue(bucketAmount == 0.05)
+        assertTrue(bucketAmount == 0.6900000000000004)
 
     }
 }
